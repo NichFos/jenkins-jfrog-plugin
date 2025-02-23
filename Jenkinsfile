@@ -7,16 +7,16 @@ buildPlugin(
 
 pipeline {
     agent any
+   
     environment {
-        AWS_REGION = 'us-east-1'
+        AWS_REGION = 'us-east-1' 
     }
-
     stages {
         stage('Set AWS Credentials') {
             steps {
                 withCredentials([[
                     $class: 'AmazonWebServicesCredentialsBinding',
-                    credentialsId: 'JenkinsCredentials3' 
+                    credentialsId: 'AWS_SECRET_ACCESS_KEY' 
                 ]]) {
                     sh '''
                     echo "AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID"
@@ -25,16 +25,19 @@ pipeline {
                 }
             }
         }
-
         stage('Checkout Code') {
             steps {
-                git branch: 'main', url: 'https://github.com/NichFos/jenkins-jfrog-plugin.git'
+                git branch: 'main', url:'https://github.com/NichFos/jenkins-jfrog-plugin.git' 
             }
         }
+
         stage('Testing') {
+            // withEnv(["JFROG_BINARY_PATH=${tool 'jfrog-cli'}"]) {
+            // // The 'jf' tool is available in this scope.
+            // }
             steps {
                 // Show the installed version of JFrog CLI.
-                jf '-v'
+                jf '-v' 
 
                 // Show the configured JFrog Platform instances.
                 jf 'c show'
@@ -44,25 +47,31 @@ pipeline {
 
                 // Create a file and upload it to a repository named 'my-repo' in Artifactory
                 sh 'touch test-file'
-                jf 'rt u test-file my-repo/'
+                jf 'rt u test-file tf-terraform/ -u mcdonald.dm.aaron@gmail.com -p $JFROG_TOKEN'
 
                 // Publish the build-info to Artifactory.
                 jf 'rt bp'
 
                 // Download the test-file
-                jf 'rt dl my-repo/test-file'
+                jf 'rt dl tf-terraform/test-file -u mcdonald.dm.aaron@gmail.com -p $JFROG_TOKEN'
+                }
             }
         }
-    }
-
+    
         stage('Initialize Terraform') {
             steps {
-                sh '''
-                terraform init
-                '''
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'JenkinsCredentials3'
+                ]]) {
+                    sh '''
+                    export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                    export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+                    terraform init
+                    '''
+                }
             }
         }
-
 
         stage('Plan Terraform') {
             steps {
@@ -78,7 +87,6 @@ pipeline {
                 }
             }
         }
-
         stage('Apply Terraform') {
             steps {
                 input message: "Approve Terraform Apply?", ok: "Deploy"
@@ -94,15 +102,12 @@ pipeline {
                 }
             }
         }
-    }   
-
+    }
     post {
         success {
             echo 'Terraform deployment completed successfully!'
         }
-
         failure {
             echo 'Terraform deployment failed!'
-      }
+        }
     }
-  }
