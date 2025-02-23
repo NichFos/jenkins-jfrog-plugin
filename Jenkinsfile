@@ -56,7 +56,6 @@ pipeline {
                 jf 'rt dl tf-terraform/test-file -u mcdonald.dm.aaron@gmail.com -p $JFROG_TOKEN'
                 }
             }
-        }
     
         stage('Initialize Terraform') {
             steps {
@@ -72,7 +71,7 @@ pipeline {
                 }
             }
         }
-
+      
         stage('Plan Terraform') {
             steps {
                 withCredentials([[
