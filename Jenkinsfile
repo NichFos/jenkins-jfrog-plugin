@@ -10,6 +10,7 @@ pipeline {
     environment {
         AWS_REGION = 'us-east-1'
     }
+
     stages {
         stage('Set AWS Credentials') {
             steps {
@@ -30,6 +31,7 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/NichFos/jenkins-jfrog-plugin.git'
             }
         }
+   stages {
         stage('Testing') {
             steps {
                 // Show the installed version of JFrog CLI.
@@ -52,7 +54,7 @@ pipeline {
                 jf 'rt dl my-repo/test-file'
             }
         }
-    }
+
         stage('Initialize Terraform') {
             steps {
                 sh '''
@@ -103,5 +105,6 @@ pipeline {
 
         failure {
             echo 'Terraform deployment failed!'
-      }
+        }
     }
+}
