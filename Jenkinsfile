@@ -53,6 +53,7 @@ pipeline {
                 jf 'rt dl my-repo/test-file'
             }
         }
+    }
 
         stage('Initialize Terraform') {
             steps {
@@ -93,8 +94,6 @@ pipeline {
                 }
             }
         }
-
-
     }   
 
     post {
@@ -104,6 +103,6 @@ pipeline {
 
         failure {
             echo 'Terraform deployment failed!'
-        }
+      }
     }
   }
