@@ -27,9 +27,6 @@ pipeline {
         }
 
         stage('Checkout Code') {
-          withEnv(["JFROG_BINARY_PATH=${tool 'jfrog-cli'}"]) {
-    // The 'jf' tool is available in this scope.
-            }
             steps {
                 git branch: 'main', url: 'https://github.com/NichFos/jenkins-jfrog-plugin.git'
             }
@@ -110,4 +107,3 @@ pipeline {
         }
     }
   }
-}
