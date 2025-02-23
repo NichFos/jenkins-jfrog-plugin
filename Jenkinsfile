@@ -31,7 +31,6 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/NichFos/jenkins-jfrog-plugin.git'
             }
         }
-   stages {
         stage('Testing') {
             steps {
                 // Show the installed version of JFrog CLI.
