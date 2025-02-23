@@ -1,10 +1,3 @@
-buildPlugin(
-  useContainerAgent: true,
-  configurations: [
-    [platform: 'linux', jdk: 11],
-    [platform: 'windows', jdk: 11],
-])
-
 pipeline {
     agent any
    
@@ -30,33 +23,17 @@ pipeline {
                 git branch: 'main', url:'https://github.com/NichFos/jenkins-jfrog-plugin.git' 
             }
         }
-
-        stage('Testing') {
-            // withEnv(["JFROG_BINARY_PATH=${tool 'jfrog-cli'}"]) {
-            // // The 'jf' tool is available in this scope.
-            // }
+        stage ('Testing') {
             steps {
-                // Show the installed version of JFrog CLI.
                 jf '-v' 
-
-                // Show the configured JFrog Platform instances.
                 jf 'c show'
-
-                // Ping Artifactory.
                 jf 'rt ping'
-
-                // Create a file and upload it to a repository named 'my-repo' in Artifactory
                 sh 'touch test-file'
-                jf 'rt u test-file tf-terraform/ -u mcdonald.dm.aaron@gmail.com -p $JFROG_TOKEN'
-
-                // Publish the build-info to Artifactory.
+                jf 'rt u test-file my-repo/'
                 jf 'rt bp'
-
-                // Download the test-file
-                jf 'rt dl tf-terraform/test-file -u mcdonald.dm.aaron@gmail.com -p $JFROG_TOKEN'
-                }
+                jf 'rt dl my-repo/test-file'
             }
-    
+        } 
         stage('Initialize Terraform') {
             steps {
                 withCredentials([[
@@ -86,28 +63,28 @@ pipeline {
                 }
             }
         }
-        stage('Apply Terraform') {
-            steps {
-                input message: "Approve Terraform Apply?", ok: "Deploy"
-                withCredentials([[
-                    $class: 'AmazonWebServicesCredentialsBinding',
-                    credentialsId: 'JenkinsCredentials3'
-                ]]) {
-                    sh '''
-                    export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-                    export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-                    terraform apply -auto-approve tfplan
-                    '''
-                }
-            }
-        }
-    }
-    post {
-        success {
-            echo 'Terraform deployment completed successfully!'
-        }
-        failure {
-            echo 'Terraform deployment failed!'
-        }
-    }
+    //     stage('Apply Terraform') {
+    //         steps {
+    //             input message: "Approve Terraform Apply?", ok: "Deploy"
+    //             withCredentials([[
+    //                 $class: 'AmazonWebServicesCredentialsBinding',
+    //                 credentialsId: 'JenkinsCredentials3'
+    //             ]]) {
+    //                 sh '''
+    //                 export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+    //                 export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+    //                 terraform apply -auto-approve tfplan
+    //                 '''
+    //             }
+    //         }
+    //     }
+    // }
+    // post {
+    //     success {
+    //         echo 'Terraform deployment completed successfully!'
+    //     }
+    //     failure {
+    //         echo 'Terraform deployment failed!'
+    //     }
+    // }
 }
